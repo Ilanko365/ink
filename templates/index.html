@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SilentInk — Write Freely. Be Truly You.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #030206;
+            --bg-gradient: linear-gradient(180deg, #070512 0%, #030206 100%);
+            --card-bg: rgba(18, 15, 32, 0.65);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --text-primary: #ffffff;
+            --text-secondary: #8c88a5;
+            --accent-purple: #5c46e6;
+            --accent-hover: #725cff;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --font-serif: 'Playfair Display', serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg-gradient);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-y: scroll;
+        }
+
+        .app-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 24px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .logo {
+            font-size: 1.4rem; font-weight: 600; cursor: pointer;
+            background: linear-gradient(135deg, #fff 30%, #a5a1ff 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        nav { display: flex; align-items: center; gap: 32px; }
+        nav a { color: var(--text-secondary); text-decoration: none; font-size: 0.95rem; cursor: pointer; transition: color 0.2s; }
+        nav a:hover, nav a.active { color: var(--text-primary); }
+
+        .btn {
+            background: var(--accent-purple); color: #fff; padding: 10px 22px;
+            border-radius: 99px; border: none; font-weight: 500; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(92, 70, 230, 0.3);
+        }
+        .btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn-secondary { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); box-shadow: none; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.05); }
+
+        /* Notification Toast (Replaces clunky alerts) */
+        #toast-notification {
+            position: fixed; bottom: 24px; right: 24px; background: #121024;
+            border: 1px solid var(--accent-purple); color: #fff; padding: 14px 24px;
+            border-radius: 12px; font-size: 0.9rem; z-index: 1000; display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* View Switching Logic */
+        .view-pane { display: none; }
+        .view-pane.active { display: block; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Landing Layout */
+        .hero-section { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; padding: 60px 0; }
+        .hero-section h1 { font-family: var(--font-serif); font-size: 4.2rem; font-weight: 400; line-height: 1.1; margin-bottom: 20px; }
+        .hero-section p { color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 32px; max-width: 460px; }
+        
+        .hero-art {
+            height: 440px; border-radius: 32px; border: 1px solid var(--card-border);
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&q=80&w=800') center;
+            background-size: cover; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px;
+        }
+        .hero-art p { font-family: var(--font-serif); font-style: italic; font-size: 1.3rem; color: #e1def5; }
+
+        .section-title { font-size: 1.4rem; font-weight: 500; margin: 40px 0 20px 0; }
+        .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 60px; }
+        .feature-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 24px; border-radius: 16px; backdrop-filter: blur(20px); }
+        .feature-card h3 { font-size: 1.1rem; margin-bottom: 8px; font-weight: 500; }
+        .feature-card p { color: var(--text-secondary); font-size: 0.88rem; }
+
+        /* Feed Layout */
+        .workspace-grid { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 40px; margin: 40px 0; }
+        .feed-header { display: flex; gap: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 24px; }
+        .feed-tab { color: var(--text-secondary); cursor: pointer; font-size: 1rem; position: relative; padding-bottom: 12px; }
+        .feed-tab.active { color: var(--text-primary); font-weight: 500; }
+        .feed-tab.active::after { content: ''; position: absolute; bottom: -1px; left:0; width:100%; height:2px; background:var(--accent-purple); }
+
+        /* Reddit-style Post Card */
+        .post-card {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px;
+            padding: 28px; margin-bottom: 20px; backdrop-filter: blur(20px); transition: all 0.2s ease;
+        }
+        .post-card:hover { border-color: rgba(255,255,255,0.12); background: rgba(22, 19, 38, 0.75); }
+        .post-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); padding: 4px 12px; border-radius: 99px; font-size: 0.78rem; color: #ffa3b1; margin-bottom: 16px; font-weight: 500; cursor: pointer; }
+        .post-tag:hover { background: rgba(255,255,255,0.08); }
+        .post-body { font-family: var(--font-serif); font-size: 1.4rem; line-height: 1.7; color: #f1effa; margin-bottom: 20px; white-space: pre-wrap; }
+        .post-meta { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px; }
+        
+        .reactions-bar { display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid rgba(255,255,255,0.04); padding-top: 16px; }
+        .react-btn {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.04); color: var(--text-secondary);
+            padding: 6px 14px; border-radius: 99px; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .react-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); border-color: rgba(255,255,255,0.15); }
+        .react-btn.active { background: rgba(92, 70, 230, 0.15); border-color: var(--accent-purple); color: #fff; }
+
+        /* Sidebar Widgets */
+        .sidebar { display: flex; flex-direction: column; gap: 24px; }
+        .widget { background: rgba(14, 12, 26, 0.6); border: 1px solid var(--card-border); padding: 24px; border-radius: 20px; }
+        .widget-title { font-size: 1rem; font-weight: 500; margin-bottom: 16px; color: #e2dff2; }
+        .sidebar-list { display: flex; flex-direction: column; gap: 4px; }
+        .sidebar-link { display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 10px; color: var(--text-secondary); cursor: pointer; text-decoration: none; font-size: 0.9rem; }
+        .sidebar-link:hover { background: rgba(255,255,255,0.03); color: var(--text-primary); }
+
+        /* Composer Canvas */
+        .composer { max-width: 640px; margin: 40px auto; }
+        .input-title { width: 100%; background: transparent; border: none; outline: none; color: #fff; font-family: var(--font-serif); font-size: 2.2rem; margin-bottom: 20px; }
+        .input-title::placeholder { color: rgba(255,255,255,0.15); }
+        .input-body { width: 100%; min-height: 240px; background: transparent; border: none; outline: none; color: #e2dfef; font-family: var(--font-sans); font-size: 1.15rem; line-height: 1.7; resize: none; }
+        .input-body::placeholder { color: rgba(255,255,255,0.08); }
+        
+        .mood-selector { margin-top: 32px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 24px; }
+        .mood-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 32px 0; }
+        .mood-grid input { display: none; }
+        .mood-pill { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 99px; font-size: 0.88rem; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+        .mood-grid input:checked + .mood-pill { background: rgba(92, 70, 230, 0.15); border-color: var(--accent-purple); color: #fff; box-shadow: 0 0 12px rgba(92, 70, 230, 0.2); }
+
+        @media(max-width: 900px) { .hero-section { grid-template-columns: 1fr; } .features-grid { grid-template-columns: repeat(2, 1fr); } .workspace-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div id="toast-notification">Notification text</div>
+
+    <div class="app-container">
+        <header>
+            <div class="logo" onclick="navigateTo('landing')">SilentInk</div>
+            <nav>
+                <a id="link-discover" onclick="navigateTo('discover')">Discover Feed</a>
+                <a id="link-write" onclick="navigateTo('write')">Write Canvas</a>
+                <button class="btn" onclick="navigateTo('write')">Get Started</button>
+            </nav>
+        </header>
+
+        <main>
+            <section id="pane-landing" class="view-pane active">
+                <div class="hero-section">
+                    <div>
+                        <h1>Write Freely.<br>Be Truly You.</h1>
+                        <p>SilentInk is a home for your unspoken thoughts and untold stories. No names. No judgment. Just emotions.</p>
+                        <div style="display:flex; gap:12px;">
+                            <button class="btn" onclick="navigateTo('write')">Start Writing</button>
+                            <button class="btn btn-secondary" onclick="navigateTo('discover')">Explore Stories</button>
+                        </div>
+                    </div>
+                    <div class="hero-art">
+                        <p>🌙<br><br>Some stories are meant to be felt,<br>not followed.</p>
+                    </div>
+                </div>
+
+                <div class="section-title">Why SilentInk?</div>
+                <div class="features-grid">
+                    <div class="feature-card"><h3>🎭 Anonymous</h3><p>Share without revealing your real-world identity data.</p></div>
+                    <div class="feature-card"><h3>💟 Pure Emotion</h3><p>Reactions that reflect authentic empathetic alignment.</p></div>
+                    <div class="feature-card"><h3>✒️ Deep Impact</h3><p>Short prose snapshots that stay embedded with you.</p></div>
+                    <div class="feature-card"><h3>📖 Clear Space</h3><p>Minimalist structural design for focused deep reading.</p></div>
+                </div>
+            </section>
+
+            <section id="pane-discover" class="view-pane">
+                <div class="workspace-grid">
+                    <div>
+                        <div class="feed-header">
+                            <div class="feed-tab active" id="tab-all" onclick="filterFeed('ALL')">All Streams</div>
+                            <div class="feed-tab" id="tab-hurt" onclick="filterFeed('This Hurt')">💔 Hurt</div>
+                            <div class="feed-tab" id="tab-felt" onclick="filterFeed('Felt This')">☁️ Felt This</div>
+                            <div class="feed-tab" id="tab-intense" onclick="filterFeed('Intense')">🔥 Intense</div>
+                        </div>
+                        <div id="feed-rendering-hook"></div>
+                    </div>
+
+                    <div class="sidebar">
+                        <div class="widget">
+                            <div class="widget-title">Surprise Shuffle</div>
+                            <button class="btn" style="width:100%;" onclick="triggerRandomShuffle()">🎲 Next Random Story</button>
+                        </div>
+                        <div class="widget">
+                            <div class="widget-title">My Room</div>
+                            <div class="sidebar-list">
+                                <a class="sidebar-link"><span>📝 Draft Saved</span><span>0</span></a>
+                                <a class="sidebar-link" onclick="navigateTo('write')"><span>✍️ Open New Canvas</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="pane-write" class="view-pane">
+                <div class="composer">
+                    <input type="text" id="post-title" class="input-title" placeholder="Give it a title..." autocomplete="off">
+                    <textarea id="post-content" class="input-body" placeholder="Type your anonymous thoughts here..."></textarea>
+                    
+                    <div class="mood-selector">
+                        <div style="font-size:0.9rem; color:var(--text-secondary);">Tag an emotion baseline:</div>
+                        <div class="mood-grid">
+                            <input type="radio" id="m-hurt" name="composer-mood" value="This Hurt" checked>
+                            <label for="m-hurt" class="mood-pill">💔 This Hurt</label>
+
+                            <input type="radio" id="m-felt" name="composer-mood" value="Felt This">
+                            <label for="m-felt" class="mood-pill">☁️ Felt This</label>
+
+                            <input type="radio" id="m-intense" name="composer-mood" value="Intense">
+                            <label for="m-intense" class="mood-pill">🔥 Intense</label>
+
+                            <input type="radio" id="m-stayed" name="composer-mood" value="Stayed With Me">
+                            <label for="m-stayed" class="mood-pill">🌙 Stayed With Me</label>
+                        </div>
+                        <button class="btn" style="width:100%; padding:14px;" onclick="submitPostToServer()">Publish Anonymously</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let globalStoriesCache = [];
+        let currentActiveFilter = 'ALL';
+
+        function showToast(msg) {
+            const el = document.getElementById('toast-notification');
+            el.innerText = msg; el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 2800);
+        }
+
+        function navigateTo(target) {
+            document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('nav a').forEach(l => l.classList.remove('active'));
+            
+            if(target === 'landing') document.getElementById('pane-landing').classList.add('active');
+            if(target === 'discover') {
+                document.getElementById('pane-discover').classList.add('active');
+                document.getElementById('link-discover').classList.add('active');
+                fetchStoriesFromDatabase();
+            }
+            if(target === 'write') {
+                document.getElementById('pane-write').classList.add('active');
+                document.getElementById('link-write').classList.add('active');
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-content').value = '';
+            }
+        }
+
+        async function fetchStoriesFromDatabase() {
+            const container = document.getElementById('feed-rendering-hook');
+            container.innerHTML = '<p style="color:var(--text-secondary); text-align:center; padding:30px;">Loading live stream...</p>';
+            try {
+                const res = await fetch('/api/stories');
+                globalStoriesCache = await res.json();
+                renderFeedFilteredList();
+            } catch (err) {
+                container.innerHTML = '<p style="color:var(--text-secondary);">Error syncing memory pipeline.</p>';
+            }
+        }
+
+        function filterFeed(moodType) {
+            currentActiveFilter = moodType;
+            document.querySelectorAll('.feed-tab').forEach(t => t.classList.remove('active'));
+            if(moodType === 'ALL') document.getElementById('tab-all').classList.add('active');
+            if(moodType === 'This Hurt') document.getElementById('tab-hurt').classList.add('active');
+            if(moodType === 'Felt This') document.getElementById('tab-felt').classList.add('active');
+            if(moodType === 'Intense') document.getElementById('tab-intense').classList.add('active');
+            renderFeedFilteredList();
+        }
+
+        function renderFeedFilteredList() {
+            const container = document.getElementById('feed-rendering-hook');
+            const targetItems = currentActiveFilter === 'ALL' ? globalStoriesCache : globalStoriesCache.filter(s => s.emotion === currentActiveFilter);
+            
+            if(targetItems.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary); font-family:var(--font-serif); font-style:italic;">This emotional channel is currently silent.</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            targetItems.forEach(story => {
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.id = `story-card-${story.id}`;
+                
+                const icons = { 'This Hurt': '💔', 'Felt This': '☁️', 'Intense': '🔥', 'Stayed With Me': '🌙' };
+                const currentIcon = icons[story.emotion] || '📝';
+
+                card.innerHTML = `
+                    <div class="post-tag" onclick="filterFeed('${story.emotion}')">${currentIcon} ${escapeText(story.emotion)}</div>
+                    <div class="post-body">${escapeText(story.content)}</div>
+                    <div class="post-meta">— Anonymous (${escapeText(story.title)})</div>
+                    <div class="reactions-bar">
+                        <button class="react-btn" onclick="optimisticReact(${story.id}, 'hurt', this)">💔 This Hurt <span>${story.reactions.hurt}</span></button>
+                        <button class="react-btn" onclick="optimisticReact(${story.id}, 'felt', this)">☁️ Felt This <span>${story.reactions.felt}</span></button>
+                        <button class="react-btn" onclick="optimisticReact(${story.id}, 'intense', this)">🔥 Intense <span>${story.reactions.intense}</span></button>
+                        <button class="react-btn" onclick="optimisticReact(${story.id}, 'stayed', this)">🌙 Stayed With Me <span>${story.reactions.stayed}</span></button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Reddit-style Dynamic Optimistic UI Reaction Upvoting Mechanics
+        function optimisticReact(storyId, reactionKey, element) {
+            element.classList.add('active');
+            const span = element.querySelector('span');
+            let currentCount = parseInt(span.innerText) || 0;
+            span.innerText = currentCount + 1; // Instant update on screen
+
+            fetch(`/api/stories/${storyId}/react`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reaction: reactionKey })
+            }).then(res => {
+                if(!res.ok) throw new Error();
+                return res.json();
+            }).then(data => {
+                span.innerText = data[reactionKey]; // Sync with exact backend state validation safely
+                // Update global tracking state cache
+                let match = globalStoriesCache.find(s => s.id === storyId);
+                if(match) match.reactions[reactionKey] = data[reactionKey];
+            }).catch(() => {
+                span.innerText = currentCount; // Revert back instantly if network pipeline fails
+                element.classList.remove('active');
+                showToast("Network lagging. Reaction failed to save.");
+            });
+        }
+
+        async function submitPostToServer() {
+            const txtTitle = document.getElementById('post-title').value.trim();
+            const txtContent = document.getElementById('post-content').value.trim();
+            const checkedRadio = document.querySelector('input[name="composer-mood"]:checked');
+            
+            if(!txtContent) {
+                showToast("Your canvas cannot be blank.");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/stories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: txtTitle || 'Untitled',
+                        content: txtContent,
+                        emotion: checkedRadio ? checkedRadio.value : 'This Hurt'
+                    })
+                });
+
+                if(res.ok) {
+                    showToast("Published anonymously!");
+                    navigateTo('discover');
+                } else {
+                    showToast("Server rejected validation parameters.");
+                }
+            } catch(e) {
+                showToast("Pipeline network error context dropped.");
+            }
+        }
+
+        function triggerRandomShuffle() {
+            const elements = document.querySelectorAll('.post-card');
+            if(elements.length === 0) {
+                showToast("No stories available to shuffle.");
+                return;
+            }
+            const chosen = elements[Math.floor(Math.random() * elements.length)];
+            chosen.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            chosen.style.boxShadow = "0 0 20px rgba(92, 70, 230, 0.4)";
+            setTimeout(() => { chosen.style.boxShadow = "none"; }, 1500);
+        }
+
+        function escapeText(raw) {
+            return raw.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
